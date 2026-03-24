@@ -124,3 +124,22 @@ df.to_csv("player_data.csv", index=False)
 
 # order players by value
 print(df[["name","position","value"]].sort_values(by="value", ascending=False))
+
+
+# sort by value and reset index so it starts from 0 for the rankings
+sorted_df = df.sort_values(by="value", ascending=False).reset_index(drop=True) 
+
+sorted_df["rank"] = sorted_df.index + 1 # add rank column, index starts at 0 so add 1
+
+rankings = sorted_df[[
+    "rank",
+    "name",
+    "position",
+    "team",
+    "age",
+    "games_played",
+    "points_per_game",
+    "value"
+]]
+
+rankings.to_csv("player_rankings.csv", index=False)
