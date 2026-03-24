@@ -102,7 +102,7 @@ def calculate_qb_value(player):
         (player["rush_attempts"] / games) * 2 
     )
     
-    age = (33 - player["age"]) * 10
+    age = (33 - player["age"]) * 5
     
     output = player["points_per_game"] * 4
     
@@ -111,7 +111,7 @@ def calculate_qb_value(player):
     else:
         brock = 0
     
-    return (production_score + opportunity_score + age + output + brock) / 2
+    return (production_score + opportunity_score + age + output) / 2 + brock
 
 # open csv file and convert it into a table
 df = pd.read_csv("player_data.csv")
