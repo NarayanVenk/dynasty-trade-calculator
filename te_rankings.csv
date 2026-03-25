@@ -1,0 +1,8 @@
+name,position,age,team,games_played,targets,rush_attempts,receptions,receiving_yards,rushing_yards,receiving_tds,rushing_tds,fantasy_points,points_per_game,pass_attempts,passing_yards,passing_tds,interceptions,completions,value
+Trey McBride,TE,26.0,ARI,17.0,169.0,0.0,126.0,1239.0,0.0,11.0,0.0,315.9,18.58,0.0,0.0,0.0,0.0,0.0,338.59235294117644
+Brock Bowers,TE,23.0,LV,12.0,86.0,2.0,64.0,680.0,2.0,7.0,0.0,176.2,14.68,0.0,0.0,0.0,0.0,0.0,255.8733333333333
+Jake Ferguson,TE,27.0,DAL,17.0,102.0,1.0,82.0,600.0,1.0,8.0,0.0,188.1,11.06,0.0,0.0,0.0,0.0,0.0,222.25
+Dalton Kincaid,TE,26.0,BUF,12.0,49.0,0.0,39.0,571.0,0.0,5.0,0.0,126.1,10.51,0.0,0.0,0.0,0.0,0.0,164.91666666666669
+Chig Okonkwo,TE,26.0,WAS,17.0,79.0,0.0,56.0,560.0,0.0,2.0,0.0,124.0,7.29,0.0,0.0,0.0,0.0,0.0,152.05411764705883
+Travis Kelce,TE,36.0,KC,17.0,108.0,1.0,76.0,851.0,1.0,5.0,0.0,193.2,11.36,0.0,0.0,0.0,0.0,0.0,112.66588235294118
+Evan Engram,TE,31.0,DEN,16.0,76.0,1.0,50.0,461.0,7.0,1.0,0.0,102.8,6.43,0.0,0.0,0.0,0.0,0.0,85.9

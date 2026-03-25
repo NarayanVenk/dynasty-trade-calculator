@@ -143,3 +143,13 @@ rankings = sorted_df[[
 ]]
 
 rankings.to_csv("player_rankings.csv", index=False)
+
+# positional rankings
+#wr
+df[df["position"] == "WR"].sort_values(by="value", ascending=False).to_csv("wr_rankings.csv", index=False)
+#rb
+df[df["position"] == "RB"].sort_values(by="value", ascending=False).to_csv("rb_rankings.csv", index=False)
+#qb
+df[df["position"] == "QB"].sort_values(by="value", ascending=False).to_csv("qb_rankings.csv", index=False)
+#te
+df[df["position"] == "TE"].sort_values(by="value", ascending=False).to_csv("te_rankings.csv", index=False)
