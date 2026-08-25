@@ -1,0 +1,21 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
+
+# VS Code settings (optional)
+.vscode/
+
+*.pyc
+
+player_data.csv
+player_rankings.csv
+qb_rankings.csv
+rb_rankings.csv
+te_rankings.csv
+wr_rankings.csv
