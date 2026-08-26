@@ -35,7 +35,46 @@ def calculate_season_weight(season: int, rookie_season: int, season_weights: dic
 
 def calculate_wr_age_score(age: float) -> float:
     """Calculate dynasty age value for wide receivers."""
+    if age <= 23:
+        return 70
 
+    elif age <= 25:
+        return 70 - (age - 23) * 5
+
+    elif age <= 27:
+        return 60 - (age - 25) * 5
+
+    elif age <= 29:
+        return 50 - (age - 27) * 10
+
+    elif age <= 31:
+        return 30 - (age - 29) * 15
+
+    else:
+        return 0 - (age - 31) * 20
+
+def calculate_rb_age_score(age: float) -> float:
+    """Calculate dynasty age value for wide receivers."""
+    if age <= 23:
+        return 70
+
+    elif age <= 25:
+        return 70 - (age - 23) * 10
+
+    elif age <= 27:
+        return 60 - (age - 25) * 10
+
+    elif age <= 29:
+        return 50 - (age - 27) * 15
+
+    elif age <= 31:
+        return 30 - (age - 29) * 20
+
+    else:
+        return 0 - (age - 31) * 25
+
+def calculate_te_age_score(age: float) -> float:
+    """Calculate dynasty age value for wide receivers."""
     if age <= 23:
         return 70
 

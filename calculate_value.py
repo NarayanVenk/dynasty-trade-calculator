@@ -1,5 +1,5 @@
 import pandas as pd
-from calculations import calculate_wr_age_score
+from calculations import calculate_wr_age_score, calculate_rb_age_score, calculate_te_age_score
 
 def calculate_value(player):
     """ Value algorithm for players."""
@@ -49,7 +49,7 @@ def calculate_rb_value(player):
     )
 
 
-    age = (player["age"] - 26) * -15
+    age = calculate_rb_age_score(player["age"])
     
     return production_score + opportunity_score + age 
 
@@ -65,7 +65,7 @@ def calculate_te_value(player):
         
     opportunity_score = player["targets_per_game"] * 10
 
-    age = (30 - player["age"]) * 10
+    age = calculate_te_age_score(player["age"])
         
     return production_score + opportunity_score + age
 
