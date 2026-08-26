@@ -31,4 +31,25 @@ def calculate_season_weight(season: int, rookie_season: int, season_weights: dic
 
     # Take the season weight and divide it by the total weight to get the actual weight of the season.
     # This way a players weight will always add up to 1 regardless of how many seasons they've played in the NFL
-    return season_weights[season] / total_weight    
+    return season_weights[season] / total_weight   
+
+def calculate_wr_age_score(age: float) -> float:
+    """Calculate dynasty age value for wide receivers."""
+
+    if age <= 23:
+        return 70
+
+    elif age <= 25:
+        return 70 - (age - 23) * 5
+
+    elif age <= 27:
+        return 60 - (age - 25) * 5
+
+    elif age <= 29:
+        return 50 - (age - 27) * 10
+
+    elif age <= 31:
+        return 30 - (age - 29) * 15
+
+    else:
+        return 0 - (age - 31) * 20
