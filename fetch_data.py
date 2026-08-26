@@ -749,5 +749,258 @@ te_player_data = te_player_data.fill_null(0)
 # save into a separate te player data csv
 te_player_data.write_csv("te_player_data.csv")
 
+
+# QUARTER BACKS
+# QB-only tables
+qbs = fantasy_players.filter(
+    pl.col("position") == "QB"
+)
+
+qb_stats = stats.filter(
+    pl.col("position") == "QB"
+)
+
+# attach the rookie season of the qb so we know which seasons should count
+qb_stats = qb_stats.join(qbs.select(
+    ["gsis_id", "rookie_season"]),
+        left_on="player_id",
+        right_on="gsis_id",
+        how="inner"
+)
+
+# calculate the per-game values for every season separately
+qb_stats = qb_stats.with_columns(
+    completions_per_game=pl.struct(
+        ["completions", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["completions"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    attempts_per_game=pl.struct(
+        ["attempts", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["attempts"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    passing_yards_per_game=pl.struct(
+        ["passing_yards", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["passing_yards"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    passing_tds_per_game=pl.struct(
+        ["passing_tds", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["passing_tds"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    interceptions_per_game=pl.struct(
+        ["passing_interceptions", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["passing_interceptions"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    carries_per_game=pl.struct(
+        ["carries", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["carries"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    rushing_yards_per_game=pl.struct(
+        ["rushing_yards", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["rushing_yards"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    rushing_tds_per_game=pl.struct(
+        ["rushing_tds", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["rushing_tds"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    points_per_game=pl.struct(
+        ["fantasy_points_ppr", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["fantasy_points_ppr"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    )
+)
+
+# add the season weights
+qb_stats = qb_stats.with_columns(
+    season_weight=pl.struct(
+        ["season", "rookie_season"]
+    ).map_elements(
+        lambda row: calculate_season_weight(
+            row["season"],
+            row["rookie_season"],
+            SEASON_WEIGHTS
+        ),
+        return_dtype=pl.Float64
+    )
+)
+
+# multiply each per game stat by that season's weight
+qb_stats = qb_stats.with_columns(
+    weighted_completions_per_game=(
+        pl.col("completions_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_attempts_per_game=(
+        pl.col("attempts_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_passing_yards_per_game=(
+        pl.col("passing_yards_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_passing_tds_per_game=(
+        pl.col("passing_tds_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_interceptions_per_game=(
+        pl.col("interceptions_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_carries_per_game=(
+        pl.col("carries_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_rushing_yards_per_game=(
+        pl.col("rushing_yards_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_rushing_tds_per_game=(
+        pl.col("rushing_tds_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_points_per_game=(
+        pl.col("points_per_game") * pl.col("season_weight")
+    )
+)
+
+# at this point we have a table that contains the year and weighted per game stats for that year for each player
+# collapse the three seasons back into one row per QB by adding each weighted per games together
+qb_weighted_stats = qb_stats.group_by("player_id").agg(
+    pl.col("weighted_completions_per_game")
+        .sum()
+        .alias("completions_per_game"),
+
+    pl.col("weighted_attempts_per_game")
+        .sum()
+        .alias("attempts_per_game"),
+
+    pl.col("weighted_passing_yards_per_game")
+        .sum()
+        .alias("passing_yards_per_game"),
+
+    pl.col("weighted_passing_tds_per_game")
+        .sum()
+        .alias("passing_tds_per_game"),
+
+    pl.col("weighted_interceptions_per_game")
+        .sum()
+        .alias("interceptions_per_game"),
+
+    pl.col("weighted_carries_per_game")
+        .sum()
+        .alias("carries_per_game"),
+
+    pl.col("weighted_rushing_yards_per_game")
+        .sum()
+        .alias("rushing_yards_per_game"),
+
+    pl.col("weighted_rushing_tds_per_game")
+        .sum()
+        .alias("rushing_tds_per_game"),
+
+    pl.col("weighted_points_per_game")
+        .sum()
+        .alias("points_per_game")
+)
+
+# join the weighted stats back to qbs
+qb_player_data = qbs.join(
+    qb_weighted_stats,
+    left_on="gsis_id",
+    right_on="player_id",
+    how="left"
+)
+
+# convert birth_date string into actual dates
+qb_player_data = qb_player_data.with_columns(
+    pl.col("birth_date")
+    .str.to_date("%Y-%m-%d", strict=False)
+    .alias("birth_date")
+)
+
+# calculate age using map_elements
+qb_player_data = qb_player_data.with_columns(
+    age=pl.col("birth_date").map_elements(
+        calculate_age,
+        return_dtype=pl.Float64
+    )
+)
+
+# select only what is needed for the QB model
+qb_player_data = qb_player_data.select([
+    pl.col("gsis_id"),
+    pl.col("display_name").alias("name"),
+    pl.col("position"),
+    pl.col("latest_team").alias("team"),
+    pl.col("age"),
+
+    pl.col("completions_per_game"),
+    pl.col("attempts_per_game"),
+    pl.col("passing_yards_per_game"),
+    pl.col("passing_tds_per_game"),
+    pl.col("interceptions_per_game"),
+    pl.col("carries_per_game"),
+    pl.col("rushing_yards_per_game"),
+    pl.col("rushing_tds_per_game"),
+    pl.col("points_per_game")
+])
+
+# fill any null columns with 0
+qb_player_data = qb_player_data.fill_null(0)
+
+# save into a separate qb player data csv
+qb_player_data.write_csv("qb_player_data.csv")
+
 # # save the data to the csv
 # player_data.write_csv("player_data.csv")
