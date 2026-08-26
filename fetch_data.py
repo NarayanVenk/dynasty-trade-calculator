@@ -6,7 +6,7 @@ from calculations import calculate_age, calculate_per_game, calculate_season_wei
 current_year = date.today().year
 last_season = current_year - 1
 
-WR_SEASON_WEIGHTS = {
+SEASON_WEIGHTS = {
     last_season: 0.50,
     last_season - 1: 0.30,
     last_season - 2: 0.20
@@ -76,6 +76,7 @@ stats = nfl.load_player_stats(
 #     pl.col("passing_interceptions").alias("interceptions")
 # ])
 
+# WIDE RECEIVERS
 # WR-only tables
 wrs = fantasy_players.filter(
     pl.col("position") == "WR"
@@ -174,7 +175,7 @@ wr_stats = wr_stats.with_columns(
         lambda row: calculate_season_weight(
             row["season"],
             row["rookie_season"],
-            WR_SEASON_WEIGHTS
+            SEASON_WEIGHTS
         ),
         return_dtype=pl.Float64
     )
@@ -213,6 +214,18 @@ wr_stats = wr_stats.with_columns(
 
 # at this point we have a table that contains the year and weighted per game stats for that year for each player
 # collapse the three seasons back into one row per WR by adding each weighted per games together
+# Example:
+#player_id    season    rec/game    season_weight    weighted_rec/game
+#Puka         2025       8.0           0.50               4.0
+#Puka         2024       6.5           0.30               1.95
+#Puka         2023       6.0           0.20               1.20
+#4.00
+#1.95
+#1.20
+#----
+#7.15
+#So, now we have:
+#Puka    7.15 receptions_per_game
 wr_weighted_stats = wr_stats.group_by("player_id").agg(
     pl.col("weighted_receptions_per_game")
         .sum()
@@ -289,10 +302,238 @@ wr_player_data = wr_player_data.fill_null(0)
 # save into a separate wr player data csv
 wr_player_data.write_csv("wr_player_data.csv")
 
+# RUNNING BACKS
+# RB-only tables
+rbs = fantasy_players.filter(
+    pl.col("position") == "RB"
+)
+
+rb_stats = stats.filter(
+    pl.col("position") == "RB"
+)
+
+# attach the rookie season of the rb so we know which seasons should count
+rb_stats = rb_stats.join(rbs.select(
+    ["gsis_id", "rookie_season"]),
+        left_on = "player_id",
+        right_on="gsis_id",
+        how="inner"
+)
+
+# calculate the per-game values for every season separately
+rb_stats = rb_stats.with_columns(
+    receptions_per_game=pl.struct(
+        ["receptions", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["receptions"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    targets_per_game=pl.struct(
+        ["targets", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["targets"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    receiving_yards_per_game=pl.struct(
+        ["receiving_yards", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["receiving_yards"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    receiving_tds_per_game=pl.struct(
+        ["receiving_tds", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["receiving_tds"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    carries_per_game=pl.struct(
+        ["carries", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["carries"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    rushing_yards_per_game=pl.struct(
+        ["rushing_yards", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["rushing_yards"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    rushing_tds_per_game=pl.struct(
+        ["rushing_tds", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["rushing_tds"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    points_per_game=pl.struct(
+        ["fantasy_points_ppr", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["fantasy_points_ppr"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    )
+)
+
+# add the season weights
+rb_stats = rb_stats.with_columns(
+    season_weight=pl.struct(
+        ["season", "rookie_season"]
+    ).map_elements(
+        lambda row: calculate_season_weight(
+            row["season"],
+            row["rookie_season"],
+            SEASON_WEIGHTS
+        ),
+        return_dtype=pl.Float64
+    )
+)
+
+# multiply each per game stat by that season's weight
+rb_stats = rb_stats.with_columns(
+    weighted_receptions_per_game=(
+        pl.col("receptions_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_targets_per_game=(
+        pl.col("targets_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_receiving_yards_per_game=(
+        pl.col("receiving_yards_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_receiving_tds_per_game=(
+        pl.col("receiving_tds_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_carries_per_game=(
+        pl.col("carries_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_rushing_yards_per_game=(
+        pl.col("rushing_yards_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_rushing_tds_per_game=(
+        pl.col("rushing_tds_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_points_per_game=(
+        pl.col("points_per_game") * pl.col("season_weight")
+    )
+)
+
+# at this point we have a table that contains the year and weighted per game stats for that year for each player
+# collapse the three seasons back into one row per RB by adding each weighted per games together
+rb_weighted_stats = rb_stats.group_by("player_id").agg(
+    pl.col("weighted_receptions_per_game")
+        .sum()
+        .alias("receptions_per_game"),
+
+    pl.col("weighted_targets_per_game")
+        .sum()
+        .alias("targets_per_game"),
+
+    pl.col("weighted_receiving_yards_per_game")
+        .sum()
+        .alias("receiving_yards_per_game"),
+
+    pl.col("weighted_receiving_tds_per_game")
+        .sum()
+        .alias("receiving_tds_per_game"),
+
+    pl.col("weighted_carries_per_game")
+        .sum()
+        .alias("carries_per_game"),
+
+    pl.col("weighted_rushing_yards_per_game")
+        .sum()
+        .alias("rushing_yards_per_game"),
+
+    pl.col("weighted_rushing_tds_per_game")
+        .sum()
+        .alias("rushing_tds_per_game"),
+
+    pl.col("weighted_points_per_game")
+        .sum()
+        .alias("points_per_game")
+)
+
+# join the weighted stats back to rbs
+rb_player_data = rbs.join(
+    rb_weighted_stats,
+    left_on="gsis_id",
+    right_on="player_id",
+    how="left"
+)
+
+# convert birth_date string into actual dates
+rb_player_data = rb_player_data.with_columns(
+    pl.col("birth_date")
+    .str.to_date("%Y-%m-%d", strict=False)
+    .alias("birth_date")
+)
+
+# calculate age using map_elements
+rb_player_data = rb_player_data.with_columns(
+    age=pl.col("birth_date").map_elements(
+        calculate_age,
+        return_dtype=pl.Float64
+    )
+)
+
+# select only what is needed for the RB model
+rb_player_data = rb_player_data.select([
+    pl.col("gsis_id"),
+    pl.col("display_name").alias("name"),
+    pl.col("position"),
+    pl.col("latest_team").alias("team"),
+    pl.col("age"),
+
+    pl.col("receptions_per_game"),
+    pl.col("targets_per_game"),
+    pl.col("receiving_yards_per_game"),
+    pl.col("receiving_tds_per_game"),
+    pl.col("carries_per_game"),
+    pl.col("rushing_yards_per_game"),
+    pl.col("rushing_tds_per_game"),
+    pl.col("points_per_game")
+])
+
 # fill any null columns with 0
-# player_data = player_data.with_columns(
-#     [pl.col(column).fill_null(0) for column in stat_columns]
-# )
+rb_player_data = rb_player_data.fill_null(0)
+
+# save into a separate rb player data csv
+rb_player_data.write_csv("rb_player_data.csv")
 
 # # save the data to the csv
 # player_data.write_csv("player_data.csv")
