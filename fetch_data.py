@@ -535,5 +535,219 @@ rb_player_data = rb_player_data.fill_null(0)
 # save into a separate rb player data csv
 rb_player_data.write_csv("rb_player_data.csv")
 
+# TIGHT ENDS
+# TE-only tables
+tes = fantasy_players.filter(
+    pl.col("position") == "TE"
+)
+
+te_stats = stats.filter(
+    pl.col("position") == "TE"
+)
+
+# attach the rookie season of the te so we know which seasons should count
+te_stats = te_stats.join(tes.select(
+    ["gsis_id", "rookie_season"]),
+        left_on = "player_id",
+        right_on="gsis_id",
+        how="inner"
+)
+
+# calculate the per-game values for every season separately
+te_stats = te_stats.with_columns(
+    receptions_per_game=pl.struct(
+        ["receptions", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["receptions"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    targets_per_game=pl.struct(
+        ["targets", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["targets"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    receiving_yards_per_game=pl.struct(
+        ["receiving_yards", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["receiving_yards"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    receiving_tds_per_game=pl.struct(
+        ["receiving_tds", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["receiving_tds"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    rushing_yards_per_game=pl.struct(
+        ["rushing_yards", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["rushing_yards"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    rushing_tds_per_game=pl.struct(
+        ["rushing_tds", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["rushing_tds"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    ),
+
+    points_per_game=pl.struct(
+        ["fantasy_points_ppr", "games"]
+    ).map_elements(
+        lambda row: calculate_per_game(
+            row["fantasy_points_ppr"],
+            row["games"]
+        ),
+        return_dtype=pl.Float64
+    )
+)
+
+# add the season weights
+te_stats = te_stats.with_columns(
+    season_weight=pl.struct(
+        ["season", "rookie_season"]
+    ).map_elements(
+        lambda row: calculate_season_weight(
+            row["season"],
+            row["rookie_season"],
+            SEASON_WEIGHTS
+        ),
+        return_dtype=pl.Float64
+    )
+)
+
+# multiply each per game stat by that season's weight
+te_stats = te_stats.with_columns(
+    weighted_receptions_per_game=(
+        pl.col("receptions_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_targets_per_game=(
+        pl.col("targets_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_receiving_yards_per_game=(
+        pl.col("receiving_yards_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_receiving_tds_per_game=(
+        pl.col("receiving_tds_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_rushing_yards_per_game=(
+        pl.col("rushing_yards_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_rushing_tds_per_game=(
+        pl.col("rushing_tds_per_game") * pl.col("season_weight")
+    ),
+
+    weighted_points_per_game=(
+        pl.col("points_per_game") * pl.col("season_weight")
+    )
+)
+
+# at this point we have a table that contains the year and weighted per game stats for that year for each player
+# collapse the three seasons back into one row per TE by adding each weighted per games together
+te_weighted_stats = te_stats.group_by("player_id").agg(
+    pl.col("weighted_receptions_per_game")
+        .sum()
+        .alias("receptions_per_game"),
+
+    pl.col("weighted_targets_per_game")
+        .sum()
+        .alias("targets_per_game"),
+
+    pl.col("weighted_receiving_yards_per_game")
+        .sum()
+        .alias("receiving_yards_per_game"),
+
+    pl.col("weighted_receiving_tds_per_game")
+        .sum()
+        .alias("receiving_tds_per_game"),
+
+    pl.col("weighted_rushing_yards_per_game")
+        .sum()
+        .alias("rushing_yards_per_game"),
+
+    pl.col("weighted_rushing_tds_per_game")
+        .sum()
+        .alias("rushing_tds_per_game"),
+
+    pl.col("weighted_points_per_game")
+        .sum()
+        .alias("points_per_game")
+)
+                
+# join the weighted stats back to tes
+te_player_data = tes.join(
+    te_weighted_stats,
+    left_on="gsis_id",
+    right_on="player_id",
+    how="left"
+)
+
+# convert birth_date string into actual dates
+te_player_data = te_player_data.with_columns(
+    pl.col("birth_date")
+    .str.to_date("%Y-%m-%d", strict=False)
+    .alias("birth_date")
+)
+
+# calculate age using map_elements
+te_player_data = te_player_data.with_columns(
+    age=pl.col("birth_date").map_elements(
+        calculate_age,
+        return_dtype=pl.Float64
+    )
+)
+
+# select only what is needed for the TE model
+te_player_data = te_player_data.select([
+    pl.col("gsis_id"),
+    pl.col("display_name").alias("name"),
+    pl.col("position"),
+    pl.col("latest_team").alias("team"),
+    pl.col("age"),
+
+    pl.col("receptions_per_game"),
+    pl.col("targets_per_game"),
+    pl.col("receiving_yards_per_game"),
+    pl.col("receiving_tds_per_game"),
+    pl.col("rushing_yards_per_game"),
+    pl.col("rushing_tds_per_game"),
+    pl.col("points_per_game")
+])
+
+# fill any null columns with 0
+te_player_data = te_player_data.fill_null(0)
+
+# save into a separate te player data csv
+te_player_data.write_csv("te_player_data.csv")
+
 # # save the data to the csv
 # player_data.write_csv("player_data.csv")
