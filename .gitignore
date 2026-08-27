@@ -11,11 +11,16 @@ __pycache__/
 # VS Code settings (optional)
 .vscode/
 
+# Python cache
 *.pyc
 
+# Csv files
 player_data.csv
 player_rankings.csv
 qb_rankings.csv
 rb_rankings.csv
 te_rankings.csv
 wr_rankings.csv
+
+# API key
+.env

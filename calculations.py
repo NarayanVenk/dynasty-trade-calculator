@@ -54,7 +54,7 @@ def calculate_wr_age_score(age: float) -> float:
         return 0 - (age - 31) * 20
 
 def calculate_rb_age_score(age: float) -> float:
-    """Calculate dynasty age value for wide receivers."""
+    """Calculate dynasty age value for running backs."""
     if age <= 23:
         return 70
 
@@ -74,7 +74,7 @@ def calculate_rb_age_score(age: float) -> float:
         return 0 - (age - 31) * 25
 
 def calculate_te_age_score(age: float) -> float:
-    """Calculate dynasty age value for wide receivers."""
+    """Calculate dynasty age value for tight ends."""
     if age <= 23:
         return 70
 
@@ -92,3 +92,11 @@ def calculate_te_age_score(age: float) -> float:
 
     else:
         return 0 - (age - 31) * 20
+
+def calculate_market_value(market_value: float | None) -> float:
+    """Calculate dynasty market value for the player to use in the value model."""
+    if market_value is None or market_value <= 0:
+        return 0.0
+
+    # this formula is so that the value matters but does not completely erase the statistical model
+    return round(market_value / 20, 2)

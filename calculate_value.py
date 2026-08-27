@@ -1,5 +1,5 @@
 import pandas as pd
-from calculations import calculate_wr_age_score, calculate_rb_age_score, calculate_te_age_score
+from calculations import calculate_wr_age_score, calculate_rb_age_score, calculate_te_age_score, calculate_market_value
 
 def calculate_value(player):
     """ Value algorithm for players."""
@@ -30,8 +30,10 @@ def calculate_wr_value(player):
     )
 
     age = calculate_wr_age_score(player["age"])
+
+    market_score = calculate_market_value(player["market_value"])
     
-    return production_score + opportunity_score + age 
+    return production_score + opportunity_score + age + market_score
 
 
 def calculate_rb_value(player):
@@ -51,7 +53,9 @@ def calculate_rb_value(player):
 
     age = calculate_rb_age_score(player["age"])
     
-    return production_score + opportunity_score + age 
+    market_score = calculate_market_value(player["market_value"])
+        
+    return production_score + opportunity_score + age + market_score
 
 
 def calculate_te_value(player):
@@ -67,7 +71,9 @@ def calculate_te_value(player):
 
     age = calculate_te_age_score(player["age"])
         
-    return production_score + opportunity_score + age
+    market_score = calculate_market_value(player["market_value"])
+        
+    return production_score + opportunity_score + age + market_score
 
 
 def calculate_qb_value(player):
@@ -88,6 +94,8 @@ def calculate_qb_value(player):
     )
     
     age = (33 - player["age"]) * 5
+
+    market_score = calculate_market_value(player["market_value"])
     
     
     if player["name"] == "Brock Purdy":
@@ -95,7 +103,7 @@ def calculate_qb_value(player):
     else:
         brock = 0
     
-    return (production_score + opportunity_score + age) / 2 + brock
+    return (production_score + opportunity_score + age) / 2 + market_score + brock
 
 # open csv files and combine them
 wr_df = pd.read_csv("wr_player_data.csv")

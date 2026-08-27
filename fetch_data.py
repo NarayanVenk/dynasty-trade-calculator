@@ -2,6 +2,7 @@ import nflreadpy as nfl
 from datetime import date
 import polars as pl
 from calculations import calculate_age, calculate_per_game, calculate_season_weight
+from statsguy import get_market_rankings
 
 current_year = date.today().year
 last_season = current_year - 1
@@ -75,6 +76,12 @@ stats = nfl.load_player_stats(
 #     pl.col("passing_tds"),
 #     pl.col("passing_interceptions").alias("interceptions")
 # ])
+
+# get dynasty market values for each position
+wr_market = get_market_rankings("WR")
+rb_market = get_market_rankings("RB")
+te_market = get_market_rankings("TE")
+qb_market = get_market_rankings("QB")
 
 # WIDE RECEIVERS
 # WR-only tables
@@ -295,6 +302,14 @@ wr_player_data = wr_player_data.select([
     pl.col("rushing_tds_per_game"),
     pl.col("points_per_game")
 ])
+
+# add dynasty market value
+wr_player_data = wr_player_data.with_columns(
+    market_value=pl.col("name").map_elements(
+        lambda name: wr_market.get(name, 0),
+        return_dtype=pl.Int64
+    )
+)
 
 # fill any null columns with 0
 wr_player_data = wr_player_data.fill_null(0)
@@ -529,6 +544,14 @@ rb_player_data = rb_player_data.select([
     pl.col("points_per_game")
 ])
 
+# add dynasty market value
+rb_player_data = rb_player_data.with_columns(
+    market_value=pl.col("name").map_elements(
+        lambda name: rb_market.get(name, 0),
+        return_dtype=pl.Int64
+    )
+)
+
 # fill any null columns with 0
 rb_player_data = rb_player_data.fill_null(0)
 
@@ -742,6 +765,14 @@ te_player_data = te_player_data.select([
     pl.col("rushing_tds_per_game"),
     pl.col("points_per_game")
 ])
+
+# add dynasty market value
+te_player_data = te_player_data.with_columns(
+    market_value=pl.col("name").map_elements(
+        lambda name: te_market.get(name, 0),
+        return_dtype=pl.Int64
+    )
+)
 
 # fill any null columns with 0
 te_player_data = te_player_data.fill_null(0)
@@ -995,6 +1026,14 @@ qb_player_data = qb_player_data.select([
     pl.col("rushing_tds_per_game"),
     pl.col("points_per_game")
 ])
+
+# add dynasty market value
+qb_player_data = qb_player_data.with_columns(
+    market_value=pl.col("name").map_elements(
+        lambda name: qb_market.get(name, 0),
+        return_dtype=pl.Int64
+    )
+)
 
 # fill any null columns with 0
 qb_player_data = qb_player_data.fill_null(0)
