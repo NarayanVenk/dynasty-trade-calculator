@@ -1,5 +1,5 @@
 import requests
-
+from calculations import normalize_player_name
 
 
 def get_market_rankings(position: str):
@@ -26,7 +26,8 @@ def get_market_rankings(position: str):
     rankings = {}
 
     for player in data["rankings"]:
-        rankings[player["name"]] = player["value"]
+        name = normalize_player_name(player["name"])
+        rankings[name] = player["value"]
 
     return rankings
 

@@ -100,3 +100,13 @@ def calculate_market_value(market_value: float | None) -> float:
 
     # this formula is so that the value matters but does not completely erase the statistical model
     return round(market_value / 20, 2)
+
+def normalize_player_name(name: str) -> str:
+    """Normalize player names so names from different data sources can match."""
+    suffixes = [" Jr.", " Sr.", " II", " III", " IV"]
+
+    for suffix in suffixes:
+        if name.endswith(suffix):
+            name = name[:-len(suffix)].strip()
+
+    return name

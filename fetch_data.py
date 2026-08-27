@@ -1,7 +1,7 @@
 import nflreadpy as nfl
 from datetime import date
 import polars as pl
-from calculations import calculate_age, calculate_per_game, calculate_season_weight
+from calculations import calculate_age, calculate_per_game, calculate_season_weight, normalize_player_name
 from statsguy import get_market_rankings
 
 current_year = date.today().year
@@ -306,7 +306,7 @@ wr_player_data = wr_player_data.select([
 # add dynasty market value
 wr_player_data = wr_player_data.with_columns(
     market_value=pl.col("name").map_elements(
-        lambda name: wr_market.get(name, 0),
+        lambda name: wr_market.get(normalize_player_name(name), 0),
         return_dtype=pl.Int64
     )
 )
@@ -547,7 +547,7 @@ rb_player_data = rb_player_data.select([
 # add dynasty market value
 rb_player_data = rb_player_data.with_columns(
     market_value=pl.col("name").map_elements(
-        lambda name: rb_market.get(name, 0),
+        lambda name: rb_market.get(normalize_player_name(name), 0),
         return_dtype=pl.Int64
     )
 )
@@ -769,7 +769,7 @@ te_player_data = te_player_data.select([
 # add dynasty market value
 te_player_data = te_player_data.with_columns(
     market_value=pl.col("name").map_elements(
-        lambda name: te_market.get(name, 0),
+        lambda name: te_market.get(normalize_player_name(name), 0),
         return_dtype=pl.Int64
     )
 )
@@ -1030,7 +1030,7 @@ qb_player_data = qb_player_data.select([
 # add dynasty market value
 qb_player_data = qb_player_data.with_columns(
     market_value=pl.col("name").map_elements(
-        lambda name: qb_market.get(name, 0),
+        lambda name: qb_market.get(normalize_player_name(name), 0),
         return_dtype=pl.Int64
     )
 )
