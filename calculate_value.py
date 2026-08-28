@@ -118,18 +118,15 @@ df = pd.concat(
 # run calculate_value on every row and store it in a new 'value' column
 df["value"] = df.apply(calculate_value, axis=1)
 
-# save the updated table back to the csv file
-df.to_csv("player_data.csv", index=False)
-
-# order players by value
-print(df[["name","position","value"]].sort_values(by="value", ascending=False))
-
-
 # sort by value and reset index so it starts from 0 for the rankings
 sorted_df = df.sort_values(by="value", ascending=False).reset_index(drop=True) 
 
+# save the updated table back to the csv file
+sorted_df.to_csv("player_data.csv", index=False)
+
 sorted_df["rank"] = sorted_df.index + 1 # add rank column, index starts at 0 so add 1
 
+# take only the things we need from sorted_df for the rankings
 rankings = sorted_df[[
     "rank",
     "name",
@@ -142,7 +139,7 @@ rankings = sorted_df[[
 
 rankings.to_csv("player_rankings.csv", index=False)
 
-# positional rankings
+# positional rankings -> uses all data, not just the rankings table
 #wr
 df[df["position"] == "WR"].sort_values(by="value", ascending=False).to_csv("wr_rankings.csv", index=False)
 #rb
