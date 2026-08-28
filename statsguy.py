@@ -31,17 +31,3 @@ def get_market_rankings(position: str):
 
     return rankings
 
-# create the dictionary
-wr_market_rankings = get_market_rankings("WR")
-rb_market_rankings = get_market_rankings("RB")
-te_market_rankings = get_market_rankings("TE")
-qb_market_rankings = get_market_rankings("QB")
-
-# prints the player's ranking
-print(wr_market_rankings["Justin Jefferson"])
-print(wr_market_rankings["Zay Flowers"])
-print(wr_market_rankings["Luther Burden"])
-print(rb_market_rankings["Omarion Hampton"])
-print(rb_market_rankings["Javonte Williams"])
-print(te_market_rankings["Trey McBride"])
-print(qb_market_rankings["Josh Allen"])

@@ -14,6 +14,43 @@ def get_player_value(player_name: str) -> float:
 
     return float(player.iloc[0]["value"])   # instead of returning the DataFrame, use iloc[0] to return the first row in the value column
 
-print(get_player_value("Luther Burden"))
-print(get_player_value("Luther Burden III"))
-print(get_player_value("Justin Jefferson"))
+def calculate_trade(side_a: list[str], side_b: list[str]):
+    """Compare the total value of two sides of a trade"""
+
+    side_a_value = sum(get_player_value(player) for player in side_a)
+    side_b_value = sum(get_player_value(player) for player in side_b)
+
+    # calculate the value differnce in the trade
+    difference = abs(side_a_value - side_b_value)
+
+    print("Side A:")
+    for player in side_a:
+        print(player + ":", round(get_player_value(player), 2))
+
+    print("Side A total:", round(side_a_value, 2))
+
+    print("\nSide B:")
+    for player in side_b:
+        print(player + ":", round(get_player_value(player), 2))
+
+    print("Side B total:", round(side_b_value, 2))
+
+    if side_a_value > side_b_value:
+        print("\nSide A has", round(difference, 2), "more value")
+
+    elif side_b_value > side_a_value:
+        print("\nSide B has", round(difference, 2), "more value")
+    else:
+        print("The trade is even")
+
+
+side_a = [
+    "Justin Jefferson",
+    "James Cook"
+]
+
+side_b = [
+    "Ja'Marr Chase"
+]
+
+calculate_trade(side_a, side_b)

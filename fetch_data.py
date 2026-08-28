@@ -24,59 +24,6 @@ stats = nfl.load_player_stats(
     summary_level = "reg"
 )
 
-
-# create another dataframe that joins the fantasy_players table and their stats with a left join so rookies remain (as their stat values will be 0)
-# player_data = fantasy_players.join(
-#     stats,
-#     left_on="gsis_id",
-#     right_on="player_id",
-#     how="left"
-# )
-
-# Convert birth_date strings into actual dates
-# player_data = player_data.with_columns(
-#     pl.col("birth_date")
-#     .str.to_date("%Y-%m-%d", strict=False)
-#     .alias("birth_date")
-# )
-
-# add two columns, age and points_per_game
-# player_data = player_data.with_columns(
-#     # calculate the age of every player in the dataset using map_elements
-#     age = pl.col("birth_date").map_elements(calculate_age, return_dtype=pl.Float64),
-
-#     # calculate the points per game of every player in the dataset using a lambda to take in both fantasy points and games
-#     points_per_game = pl.struct( ["fantasy_points_ppr", "games"]).map_elements(
-#         lambda row: calculate_per_game(row["fantasy_points_ppr"], row["games"]), return_dtype=pl.Float64)
-# )
-
-# select the columns we need and change the names using alias so that the existing value calculation works
-# player_data = player_data.select([
-#     pl.col("gsis_id"),
-#     pl.col("display_name").alias("name"),
-#     pl.col("position"),
-#     pl.col("latest_team").alias("team"),
-#     pl.col("age"),
-
-#     pl.col("games").alias("games_played"),
-#     pl.col("points_per_game"),
-
-#     pl.col("receptions"),
-#     pl.col("receiving_yards"),
-#     pl.col("receiving_tds"),
-#     pl.col("targets"),
-
-#     pl.col("carries").alias("rush_attempts"),
-#     pl.col("rushing_yards"),
-#     pl.col("rushing_tds"),
-
-#     pl.col("completions"),
-#     pl.col("attempts").alias("pass_attempts"),
-#     pl.col("passing_yards"),
-#     pl.col("passing_tds"),
-#     pl.col("passing_interceptions").alias("interceptions")
-# ])
-
 # get dynasty market values for each position
 wr_market = get_market_rankings("WR")
 rb_market = get_market_rankings("RB")
@@ -1040,6 +987,3 @@ qb_player_data = qb_player_data.fill_null(0)
 
 # save into a separate qb player data csv
 qb_player_data.write_csv("qb_player_data.csv")
-
-# # save the data to the csv
-# player_data.write_csv("player_data.csv")
