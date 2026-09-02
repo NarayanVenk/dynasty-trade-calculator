@@ -22,5 +22,4 @@ rb_rankings.csv
 te_rankings.csv
 wr_rankings.csv
 
-# API key
 .env

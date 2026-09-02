@@ -4,6 +4,13 @@ from calculations import normalize_player_name
 # load player values
 df = pd.read_csv("player_data.csv")
 
+# draft pick values
+PICK_VALUES = {
+    "2027 1st": 250,
+    "2027 2nd": 100,
+    "2027 3rd": 40
+}
+
 def get_player_value(player_name: str) -> float:
     """Get a player's calculated dynasty value by name"""
 
@@ -14,6 +21,16 @@ def get_player_value(player_name: str) -> float:
 
     return float(player.iloc[0]["value"])   # instead of returning the DataFrame, use iloc[0] to return the first row in the value column
 
+def get_pick_value(pick: str) -> float:
+    """Get a pick's dynasty value"""
+
+    if pick not in PICK_VALUES:
+        raise ValueError(f"Pick not found: {pick}")
+    return PICK_VALUES[pick]
+
+
+print(get_pick_value("2027 1st"))
+      
 def calculate_trade(side_a: list[str], side_b: list[str]):
     """Compare the total value of two sides of a trade"""
 
@@ -41,7 +58,7 @@ def calculate_trade(side_a: list[str], side_b: list[str]):
     elif side_b_value > side_a_value:
         print("\nSide B has", round(difference, 2), "more value")
     else:
-        print("The trade is even")
+        print("\nThe trade is even")
 
 
 side_a = [
