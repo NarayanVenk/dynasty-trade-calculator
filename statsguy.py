@@ -78,12 +78,3 @@ def get_pick_values():
         pick_values[name] = value
 
     return pick_values
-
-pick_values = get_pick_values()
-
-print(pick_values["2026 1.01"])
-print(pick_values["2026 1.12"])
-print(pick_values["2027 early 1st"])
-print(pick_values["2027 mid 1st"])
-print(pick_values["2027 late 1st"])
-print(pick_values["2028 early 2nd"])

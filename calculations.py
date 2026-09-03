@@ -101,6 +101,11 @@ def calculate_market_value(market_value: float | None) -> float:
     # this formula is so that the value matters but does not completely erase the statistical model
     return round(market_value / 20, 2)
 
+def calculate_pick_value(pick_value: float) -> float:
+    """Scale Stats Guy pick value to fit the player value model."""
+
+    return round(pick_value / 20, 2)
+
 def normalize_player_name(name: str) -> str:
     """Normalize player names so names from different data sources can match."""
     suffixes = [" Jr.", " Sr.", " II", " III", " IV"]

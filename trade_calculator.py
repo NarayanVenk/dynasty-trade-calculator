@@ -1,15 +1,12 @@
 import pandas as pd
-from calculations import normalize_player_name
+from calculations import normalize_player_name, calculate_pick_value
+from statsguy import get_pick_values
 
 # load player values
 df = pd.read_csv("player_data.csv")
 
 # draft pick values
-PICK_VALUES = {
-    "2027 1st": 250,
-    "2027 2nd": 100,
-    "2027 3rd": 40
-}
+PICK_VALUES = get_pick_values()
 
 def get_player_value(player_name: str) -> float:
     """Get a player's calculated dynasty value by name"""
@@ -24,7 +21,7 @@ def get_player_value(player_name: str) -> float:
 def get_asset_value(asset: str) -> float:
     """Determine if an asset is a player or pick and get its value"""
     if asset in PICK_VALUES:
-        return PICK_VALUES[asset]
+        return calculate_pick_value(PICK_VALUES[asset])
     return get_player_value(asset)
 
 def calculate_trade(side_a: list[str], side_b: list[str]):
@@ -60,12 +57,15 @@ def calculate_trade(side_a: list[str], side_b: list[str]):
 
 side_a = [
     "Justin Jefferson",
-    "James Cook"
+    "James Cook",
+    "2026 1.02"
 ]
 
 side_b = [
     "Ja'Marr Chase",
-    "2027 1st"
+    "2027 early 1st",
+    "2027 mid 2nd"
 ]
 
 calculate_trade(side_a, side_b)
+
