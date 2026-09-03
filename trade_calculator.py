@@ -21,34 +21,31 @@ def get_player_value(player_name: str) -> float:
 
     return float(player.iloc[0]["value"])   # instead of returning the DataFrame, use iloc[0] to return the first row in the value column
 
-def get_pick_value(pick: str) -> float:
-    """Get a pick's dynasty value"""
+def get_asset_value(asset: str) -> float:
+    """Determine if an asset is a player or pick and get its value"""
+    if asset in PICK_VALUES:
+        return PICK_VALUES[asset]
+    return get_player_value(asset)
 
-    if pick not in PICK_VALUES:
-        raise ValueError(f"Pick not found: {pick}")
-    return PICK_VALUES[pick]
-
-
-print(get_pick_value("2027 1st"))
-      
 def calculate_trade(side_a: list[str], side_b: list[str]):
     """Compare the total value of two sides of a trade"""
 
-    side_a_value = sum(get_player_value(player) for player in side_a)
-    side_b_value = sum(get_player_value(player) for player in side_b)
+    side_a_value= sum(get_asset_value(asset) for asset in side_a)
+    
+    side_b_value= sum(get_asset_value(asset) for asset in side_b)
 
     # calculate the value differnce in the trade
     difference = abs(side_a_value - side_b_value)
 
     print("Side A:")
-    for player in side_a:
-        print(player + ":", round(get_player_value(player), 2))
+    for asset in side_a:
+        print(asset + ":", round(get_asset_value(asset), 2))
 
     print("Side A total:", round(side_a_value, 2))
 
     print("\nSide B:")
-    for player in side_b:
-        print(player + ":", round(get_player_value(player), 2))
+    for asset in side_b:
+        print(asset + ":", round(get_asset_value(asset), 2))
 
     print("Side B total:", round(side_b_value, 2))
 
@@ -67,7 +64,8 @@ side_a = [
 ]
 
 side_b = [
-    "Ja'Marr Chase"
+    "Ja'Marr Chase",
+    "2027 1st"
 ]
 
 calculate_trade(side_a, side_b)
